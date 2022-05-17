@@ -9,19 +9,18 @@
 // granted to it by virtue of its status as an Intergovernmental Organization
 // or submit itself to any jurisdiction.
 ///
-/// \brief Both tasks, ATask and BTask create two histograms. But whereas in
-///        the first case (ATask) the histograms are not saved to file, this
-///        happens automatically if OutputObj<TH1F> is used to create a
-///        histogram. By default the histogram is saved to file
-///        AnalysisResults.root. HistogramRegistry is yet an other possibility
-///        to deal with histograms. See tutorial example histogramRegistery.cxx
-///        for details.
-/// \author
-/// \since
+/// \brief TPCQC sampling/skimiimg of the data as in the Run1/Run2
+///         https://github.com/alisw/AliPhysics/blob/523f2dc8b45d913e9b7fda9b27e746819cbe5b09/PWGPP/AliAnalysisTaskFilteredTree.h#L145
+///         JIRA: https://alice.its.cern.ch/jira/browse/ATO-592
+///         To run the code:
+///         o2-analysis-tpcqcskimming --aod-file  /lustre/alice/DETdata/Run3/alice/data/2021/OCT/505658/apass3/o2_ctf_run00505658_orbit0000081300_tf0000000003/AO2D.root -b > aaa.log
+/// \author marian.ivanov@cern.ch
+/// \since 17.05.2022
 
 #include "Framework/runDataProcessing.h"
 #include "Framework/AnalysisTask.h"
 #include "Framework/AnalysisDataModel.h"
+#include "Common/DataModel/TrackSelectionTables.h"
 #include "CommonUtils/TreeStream.h"
 #include "CommonUtils/TreeStreamRedirector.h"
 #include "TFile.h"
@@ -147,7 +146,8 @@ struct OutputTracks {
     ic.services().get<CallbackService>().set(CallbackService::Id::Stop, finishFunction);
   }
 
-  void process(soa::Join<aod::Tracks, aod::TracksExtra> const& tracks)
+  void process(soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksExtended> const& tracks)
+  //void process(soa::Join<aod::Tracks, aod::TracksExtra> const& tracks)
   {
     Float_t mass=0.139;
     Float_t sqrts=14400;
@@ -166,7 +166,19 @@ struct OutputTracks {
       if (triggerMask==0) continue;
       if (weight==0) continue;
       if (counter%100==0) LOGP(info, "11- Track {} has pT = {}", track.index(), track.pt());
-      // Extra - table varaibles as in the https://github.com/AliceO2Group/AliceO2/blob/cab4b330a261046eba9aa628781754da4e849205/Framework/Core/include/Framework/AnalysisDataModel.h#L202
+      // track params table
+      float x=track.x();                   //!
+      float alpha=track.alpha();           //!
+      float y=track.y();                   //!
+      float z=track.z();                   //!
+      float snp=track.snp();               //!
+      float tgl=track.tgl();               //!
+      float signed1Pt=track.signed1Pt();   //! (sign of charge)/Pt in c/GeV. Use pt() and sign() instead
+      //    https://github.com/AliceO2Group/O2Physics/blob/master/Common/DataModel/TrackSelectionTables.h
+      float dcaXY= track.dcaXY();
+      float dcaZ= track.dcaZ();
+      // track extended table
+      // Extra - table variables as in the https://github.com/AliceO2Group/AliceO2/blob/cab4b330a261046eba9aa628781754da4e849205/Framework/Core/include/Framework/AnalysisDataModel.h#L202
        uint32_t flags= track.flags();
        uint8_t itsClusterMap=track.itsClusterMap();
         uint8_t tpcNClsFindable=track.tpcNClsFindable();
@@ -209,31 +221,42 @@ DECLARE_SOA_COLUMN(TrackTime, trackTime, float);                                
 DECLARE_SOA_COLUMN(TrackTimeRes, trackTimeRes, float);                                        //! Resolution of the track time in ns (see TrackFlags::TrackTimeResIsRange)
        */
       (*pcstream) << "tracks" <<
-        "triggerMask="<<triggerMask<<
-        "weight="<<weight<<
-        "phi=" << phi <<
-        "pt="<<pt<<
-         // extra
-         "flags="<<flags<<
-         "itsClusterMap="<<itsClusterMap<<
+          "triggerMask="<<triggerMask<<
+          "weight="<<weight<<
+          "phi=" << phi <<
+          "pt="<<pt<<
+          // track parameters
+          "x="<<x<<
+          "alpha="<<alpha<<
+          "y="<<y<<
+          "z="<<z<<
+          "snp="<<snp<<
+          "tgl="<<tgl<<
+          "signed1Pt="<<signed1Pt<<
+          // extended
+          "dcaXY="<<dcaXY<<
+          "dcaZ="<<dcaZ<<
+          // extra
+          "flags="<<flags<<
+          "itsClusterMap="<<itsClusterMap<<
           "tpcNClsFindable="<<tpcNClsFindable<<
-        "tpcNClsFindableMinusFound="<<tpcNClsFindableMinusFound<<
-            "tpcNClsFindableMinusCrossedRows="<<tpcNClsFindableMinusCrossedRows<<
-            "tpcNClsShared=" <<tpcNClsShared<<
+          "tpcNClsFindableMinusFound="<<tpcNClsFindableMinusFound<<
+          "tpcNClsFindableMinusCrossedRows="<<tpcNClsFindableMinusCrossedRows<<
+          "tpcNClsShared=" <<tpcNClsShared<<
           "trdPattern="<<trdPattern<<
-        "itsChi2NCl="<<itsChi2NCl<<
-        "tpcChi2NCl="<<tpcChi2NCl<<
-        "trdChi2="<<trdChi2<<
-        "tofChi2="<<tofChi2<<
-        "tpcSignal="<<tpcSignal<<
-        "trdSignal="<<trdSignal<<
-        "length="<<length<<
-        "tofExpMom="<<tofExpMom<<
-        "trackEtaEmcal="<<trackEtaEmcal<<
-        "trackPhiEmcal="<<trackPhiEmcal<<
-        "trackTime="<<trackTime<<
-        "trackTimeRes="<<trackTimeRes<<
-         "\n";
+          "itsChi2NCl="<<itsChi2NCl<<
+          "tpcChi2NCl="<<tpcChi2NCl<<
+          "trdChi2="<<trdChi2<<
+          "tofChi2="<<tofChi2<<
+          "tpcSignal="<<tpcSignal<<
+          "trdSignal="<<trdSignal<<
+          "length="<<length<<
+          "tofExpMom="<<tofExpMom<<
+          "trackEtaEmcal="<<trackEtaEmcal<<
+          "trackPhiEmcal="<<trackPhiEmcal<<
+          "trackTime="<<trackTime<<
+          "trackTimeRes="<<trackTimeRes<<
+          "\n";
       counter++;
     }
     //pcstream->Close();
