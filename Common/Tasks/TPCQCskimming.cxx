@@ -32,6 +32,7 @@
 #include "DetectorsBase/GeometryManager.h"
 #include "DetectorsBase/MatLayerCylSet.h"
 #include "DataFormatsParameters/GRPObject.h"
+#include "Framework/runDataProcessing.h"
 
 using namespace o2;
 using namespace o2::framework;
@@ -155,8 +156,24 @@ struct OutputTracks {
   // histogram created with OutputObj<TH1F>
   o2::utils::TreeStreamRedirector *pcstream = nullptr;
   int counter=0;
+  Service<o2::ccdb::BasicCCDBManager> ccdb;
+  o2::base::MatLayerCylSet* lut;
+  const char* ccdbpath_lut = "GLO/Param/MatLUT";
+  const char* ccdbpath_geo = "GLO/Config/GeometryAligned";
+  const char* ccdbpath_grp = "GLO/GRP/GRP";
+  const char* ccdburl = "http://alice-ccdb.cern.ch"; /* test  "http://alice-ccdb.cern.ch:8080"; */
+  int mRunNumber;
+  float mMagField;
   void init(o2::framework::InitContext& ic)
   {
+    // iit ccdb
+    ccdb->setURL(ccdburl);
+    ccdb->setCaching(true);
+    ccdb->setLocalObjectValidityChecking();
+    lut = o2::base::MatLayerCylSet::rectifyPtrFromFile(ccdb->get<o2::base::MatLayerCylSet>(ccdbpath_lut));
+    if (!o2::base::GeometryManager::isGeometryLoaded()) {
+      ccdb->get<TGeoManager>(ccdbpath_geo);
+    }
     auto finishFunction = [this]() {
       if (pcstream) {
         pcstream->Close();
@@ -168,7 +185,7 @@ struct OutputTracks {
     ic.services().get<CallbackService>().set(CallbackService::Id::Stop, finishFunction);
   }
 
-  void process(soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksExtended> const& tracks)
+  void process(soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksExtended> const& tracks, aod::Collisions const& collisions)
   //void process(soa::Join<aod::Tracks, aod::TracksExtra> const& tracks)
   {
     Float_t mass=0.139;
@@ -179,6 +196,8 @@ struct OutputTracks {
     //
     if (pcstream== nullptr) pcstream = new o2::utils::TreeStreamRedirector("tpcqcskimmingTracks.root", "recreate");
 	  pcstream->GetFile()->cd();
+    auto bc = collisions.bc_as<aod::BCsWithTimestamps>();
+
     for (auto& track : tracks) {
       auto trackPar = getTrackPar(track);
       // getDCA to beam pipe
