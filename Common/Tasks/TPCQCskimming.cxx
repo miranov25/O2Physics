@@ -23,11 +23,19 @@
 #include "Common/DataModel/TrackSelectionTables.h"
 #include "CommonUtils/TreeStream.h"
 #include "CommonUtils/TreeStreamRedirector.h"
+#include "Common/Core/trackUtilities.h"
+#include "DetectorsBase/Propagator.h"
 #include "TFile.h"
 #include "TRandom.h"
- 
+#include "CommonUtils/NameConf.h"
+#include <CCDB/BasicCCDBManager.h>
+#include "DetectorsBase/GeometryManager.h"
+#include "DetectorsBase/MatLayerCylSet.h"
+#include "DataFormatsParameters/GRPObject.h"
+
 using namespace o2;
 using namespace o2::framework;
+//using namespace o2::base;
 
 
 /// Tsalis/Hagedorn function describing charged pt spectra (m s = 62.4 GeV to 13 TeV) as in https://iopscience.iop.org/article/10.1088/2399-6528/aab00f/pdf
@@ -73,14 +81,28 @@ Int_t  DownsampleTsalisCharged(Double_t pt, Double_t factorPt, Double_t factor1P
   return triggerMask;
 }
 
-
-
 struct OutputObjects {
   // histogram created with OutputObj<TH1F>
   o2::utils::TreeStreamRedirector *pcstream = nullptr;
+  Service<o2::ccdb::BasicCCDBManager> ccdb;
+  o2::base::MatLayerCylSet* lut;
   int counter=0;
+  const char* ccdbpath_lut = "GLO/Param/MatLUT";
+  const char* ccdbpath_geo = "GLO/Config/GeometryAligned";
+  const char* ccdbpath_grp = "GLO/GRP/GRP";
+  const char* ccdburl = "http://alice-ccdb.cern.ch"; /* test  "http://alice-ccdb.cern.ch:8080"; */
+  //
   void init(o2::framework::InitContext& ic)
   {
+    // init CCDB
+    ccdb->setURL(ccdburl);
+    ccdb->setCaching(true);
+    ccdb->setLocalObjectValidityChecking();
+    lut = o2::base::MatLayerCylSet::rectifyPtrFromFile(ccdb->get<o2::base::MatLayerCylSet>(ccdbpath_lut));
+    if (!o2::base::GeometryManager::isGeometryLoaded()) {
+      ccdb->get<TGeoManager>(ccdbpath_geo);
+    }
+    //
     auto finishFunction = [this]() {
       if (pcstream) {
         pcstream->Close();
@@ -105,7 +127,7 @@ struct OutputObjects {
       float phi=track.phi();
       float pt=track.pt();
       pcstream->GetFile()->cd();
-      auto track2=track;
+      //auto track2=track;
       //if (track.pt()<2) continue;
       double weight = 0;
       Int_t triggerMask = DownsampleTsalisCharged(pt, factorPt, factor1Pt, sqrts, mass, &weight);
@@ -153,10 +175,17 @@ struct OutputTracks {
     Float_t sqrts=14400;
     float factor1Pt=0.01;
     float factorPt=0.01;
+    //auto propagator = o2::base::Propagator::Instance();
     //
     if (pcstream== nullptr) pcstream = new o2::utils::TreeStreamRedirector("tpcqcskimmingTracks.root", "recreate");
 	  pcstream->GetFile()->cd();
     for (auto& track : tracks) {
+      auto trackPar = getTrackPar(track);
+      // getDCA to beam pipe
+      o2::math_utils::CircleXYf_t trcCircle;   // circle parameters for B ON data
+      float sna, csa;
+      //trackPar.getCircleParams(propagator->getNominalBz(), trcCircle, sna, csa);
+      //
       float phi=track.phi();
       float pt=track.pt();
       pcstream->GetFile()->cd();
@@ -225,6 +254,8 @@ DECLARE_SOA_COLUMN(TrackTimeRes, trackTimeRes, float);                          
           "weight="<<weight<<
           "phi=" << phi <<
           "pt="<<pt<<
+          //
+          "trackPar="<<&trackPar<<
           // track parameters
           "x="<<x<<
           "alpha="<<alpha<<

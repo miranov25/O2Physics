@@ -56,5 +56,5 @@ o2physics_add_dpl_workflow(ft0-qa
 
 o2physics_add_dpl_workflow(tpcqcskimming
                   SOURCES TPCQCskimming.cxx
-                  PUBLIC_LINK_LIBRARIES O2::Framework
+                  PUBLIC_LINK_LIBRARIES O2::Framework O2::DetectorsBase
                   COMPONENT_NAME Analysis)
