@@ -33,9 +33,42 @@
 #include "DetectorsBase/MatLayerCylSet.h"
 #include "DataFormatsParameters/GRPObject.h"
 #include "Framework/runDataProcessing.h"
-
+// gaveup on the header file - copy them from others
+#include "Framework/AnalysisDataModel.h"
+#include "Framework/AnalysisTask.h"
+#include "Framework/runDataProcessing.h"
+#include "Common/Core/TrackSelection.h"
+#include "Common/DataModel/TrackSelectionTables.h"
+#include "Common/DataModel/Multiplicity.h"
+#include "Common/Core/trackUtilities.h"
+#include "ReconstructionDataFormats/DCA.h"
+#include "DetectorsBase/Propagator.h"
+#include "DetectorsBase/GeometryManager.h"
+#include "CommonUtils/NameConf.h"
+#include "DataFormatsParameters/GRPObject.h"
+#include <CCDB/BasicCCDBManager.h>
+//
+#include "Framework/AnalysisDataModel.h"
+#include "Framework/AnalysisTask.h"
+#include "Framework/runDataProcessing.h"
+#include "Framework/RunningWorkflowInfo.h"
+#include "Common/DataModel/TrackSelectionTables.h"
+#include "Common/Core/trackUtilities.h"
+#include "ReconstructionDataFormats/DCA.h"
+#include "DetectorsBase/Propagator.h"
+#include "DetectorsBase/GeometryManager.h"
+#include "CommonUtils/NameConf.h"
+#include "CCDB/CcdbApi.h"
+#include "DataFormatsParameters/GRPObject.h"
+#include "CCDB/BasicCCDBManager.h"
+#include "Framework/HistogramRegistry.h"
+#include "Framework/runDataProcessing.h"
+#include "DataFormatsCalibration/MeanVertexObject.h"
+#include "CommonConstants/GeomConstants.h"
+//
 using namespace o2;
 using namespace o2::framework;
+using namespace o2::framework::expressions;
 //using namespace o2::base;
 
 
@@ -185,7 +218,7 @@ struct OutputTracks {
     ic.services().get<CallbackService>().set(CallbackService::Id::Stop, finishFunction);
   }
 
-  void process(soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksExtended> const& tracks, aod::Collisions const& collisions)
+  void process(soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksExtended> const& tracks, aod::Collisions const& collisions, aod::BCsWithTimestamps const& bcs)
   //void process(soa::Join<aod::Tracks, aod::TracksExtra> const& tracks)
   {
     Float_t mass=0.139;
@@ -196,7 +229,10 @@ struct OutputTracks {
     //
     if (pcstream== nullptr) pcstream = new o2::utils::TreeStreamRedirector("tpcqcskimmingTracks.root", "recreate");
 	  pcstream->GetFile()->cd();
-    auto bc = collisions.bc_as<aod::BCsWithTimestamps>();
+    //o2::aod::BCs bc; //this part is disabled for the moment- we are waiting for the pass4 back compatible prodution
+    //for (auto & collision : collisions){
+    //   auto bc= collision.bc_as<aod::BCsWithTimestamps>();
+    //}
 
     for (auto& track : tracks) {
       auto trackPar = getTrackPar(track);
