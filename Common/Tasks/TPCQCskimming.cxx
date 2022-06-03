@@ -65,6 +65,7 @@
 #include "Framework/runDataProcessing.h"
 #include "DataFormatsCalibration/MeanVertexObject.h"
 #include "CommonConstants/GeomConstants.h"
+#include "TVectorF.h"
 //
 using namespace o2;
 using namespace o2::framework;
@@ -218,9 +219,14 @@ struct OutputTracks {
     ic.services().get<CallbackService>().set(CallbackService::Id::Stop, finishFunction);
   }
 
-  void process(soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksExtended> const& tracks, aod::Collisions const& collisions, aod::BCsWithTimestamps const& bcs)
+  void process(soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksExtended,aod::TracksCovIU> const& tracks, aod::Collisions const& collisions, aod::BCsWithTimestamps const& bcs)
+  //void process(soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksExtended,aod::TracksCov> const& tracks, aod::Collisions const& collisions, aod::BCsWithTimestamps const& bcs)
+
   //void process(soa::Join<aod::Tracks, aod::TracksExtra> const& tracks)
   {
+
+    const float kncrCutSample=60;
+    const float kncrCutWeight=0.05;
     Float_t mass=0.139;
     Float_t sqrts=14400;
     float factor1Pt=0.01;
@@ -235,7 +241,8 @@ struct OutputTracks {
     //}
 
     for (auto& track : tracks) {
-      auto trackPar = getTrackPar(track);
+      //auto trackPar = getTrackPar(track);
+      auto trackPar = getTrackParCov(track);
       // getDCA to beam pipe
       o2::math_utils::CircleXYf_t trcCircle;   // circle parameters for B ON data
       float sna, csa;
@@ -250,14 +257,15 @@ struct OutputTracks {
       if (triggerMask==0) continue;
       if (weight==0) continue;
       if (counter%100==0) LOGP(info, "11- Track {} has pT = {}", track.index(), track.pt());
+
       // track params table
-      float x=track.x();                   //!
-      float alpha=track.alpha();           //!
-      float y=track.y();                   //!
-      float z=track.z();                   //!
-      float snp=track.snp();               //!
-      float tgl=track.tgl();               //!
-      float signed1Pt=track.signed1Pt();   //! (sign of charge)/Pt in c/GeV. Use pt() and sign() instead
+//      float x=track.x();                   //!
+//      float alpha=track.alpha();           //!
+//      float y=track.y();                   //!
+//      float z=track.z();                   //!
+//      float snp=track.snp();               //!
+//      float tgl=track.tgl();               //!
+//      float signed1Pt=track.signed1Pt();   //! (sign of charge)/Pt in c/GeV. Use pt() and sign() instead
       //    https://github.com/AliceO2Group/O2Physics/blob/master/Common/DataModel/TrackSelectionTables.h
       float dcaXY= track.dcaXY();
       float dcaZ= track.dcaZ();
@@ -304,21 +312,33 @@ DECLARE_SOA_COLUMN(TrackPhiEMCAL, trackPhiEmcal, float);                        
 DECLARE_SOA_COLUMN(TrackTime, trackTime, float);                                              //! Estimated time of the track in ns wrt collision().bc() or ambiguoustrack.bcSlice()[0]
 DECLARE_SOA_COLUMN(TrackTimeRes, trackTimeRes, float);                                        //! Resolution of the track time in ns (see TrackFlags::TrackTimeResIsRange)
        */
+      if (tpcNClsFindable<kncrCutSample  &&gRandom->Rndm()> kncrCutWeight) continue;
+      bool hasCollision=kFALSE;
+      TVectorF vertex(3);
+      if (track.has_collision()) {
+          auto const& collision = track.collision();
+          hasCollision=true;
+          //o2::base::Propagator::Instance()->propagateToDCABxByBz({collision.posX(), collision.posY(), collision.posZ()}, trackPar, 2.f, matCorr, &dcaInfo);
+          vertex[0]=collision.posX();
+          vertex[1]=collision.posY();
+          vertex[2]=collision.posZ();
+      } else {
+          //o2::base::Propagator::Instance()->propagateToDCABxByBz({mVtx->getX(), mVtx->getY(), mVtx->getZ()}, trackPar, 2.f, matCorr, &dcaInfo);
+          //vertex[0]=collision.posX();
+          //vertex[1]=collision.posY();
+          //vertex[2]=collision.posY();
+      }
+
       (*pcstream) << "tracks" <<
           "triggerMask="<<triggerMask<<
           "weight="<<weight<<
           "phi=" << phi <<
           "pt="<<pt<<
-          //
+          // collision info
+          "vertex.="<<vertex<<
+          "hasCollision="<<hasCollision<<
+          //track parameters
           "trackPar="<<&trackPar<<
-          // track parameters
-          "x="<<x<<
-          "alpha="<<alpha<<
-          "y="<<y<<
-          "z="<<z<<
-          "snp="<<snp<<
-          "tgl="<<tgl<<
-          "signed1Pt="<<signed1Pt<<
           // extended
           "dcaXY="<<dcaXY<<
           "dcaZ="<<dcaZ<<
