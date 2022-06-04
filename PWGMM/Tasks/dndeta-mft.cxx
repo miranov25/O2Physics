@@ -30,6 +30,10 @@ using namespace o2;
 using namespace o2::framework;
 using namespace o2::framework::expressions;
 
+AxisSpec PtAxis = {1001, -0.005, 10.005};
+
+using MFTTracksLabeled = soa::Join<o2::aod::MFTTracks, aod::McMFTTrackLabels>;
+
 struct PseudorapidityDensityMFT {
   Service<TDatabasePDG> pdg;
 
@@ -41,6 +45,7 @@ struct PseudorapidityDensityMFT {
       {"EventsNtrkZvtx", "; N_{trk}; Z_{vtx}; events", {HistType::kTH2F, {{301, -0.5, 300.5}, {201, -20.1, 20.1}}}}, //
       {"TracksEtaZvtx", "; #eta; Z_{vtx}; tracks", {HistType::kTH2F, {{18, -4.6, -1.}, {201, -20.1, 20.1}}}},        //
       {"TracksPhiEta", "; #varphi; #eta; tracks", {HistType::kTH2F, {{600, 0, 2 * M_PI}, {18, -4.6, -1.}}}},         //
+      {"TracksPtEta", " ; p_{T} (GeV/c); #eta", {HistType::kTH2F, {PtAxis, {18, -4.6, -1.}}}},                       //
       {"EventSelection", ";status;events", {HistType::kTH1F, {{7, 0.5, 7.5}}}}                                       //
     }                                                                                                                //
   };
@@ -59,9 +64,13 @@ struct PseudorapidityDensityMFT {
 
     if (doprocessGen) {
       registry.add({"EventsNtrkZvtxGen", "; N_{trk}; Z_{vtx}; events", {HistType::kTH2F, {{301, -0.5, 300.5}, {201, -20.1, 20.1}}}});
+      registry.add({"EventsNtrkZvtxGen_t", "; N_{trk}; Z_{vtx}; events", {HistType::kTH2F, {{301, -0.5, 300.5}, {201, -20.1, 20.1}}}});
       registry.add({"TracksEtaZvtxGen", "; #eta; Z_{vtx}; tracks", {HistType::kTH2F, {{18, -4.6, -1.}, {201, -20.1, 20.1}}}});
       registry.add({"TracksEtaZvtxGen_t", "; #eta; Z_{vtx}; tracks", {HistType::kTH2F, {{18, -4.6, -1.}, {201, -20.1, 20.1}}}});
       registry.add({"TracksPhiEtaGen", "; #varphi; #eta; tracks", {HistType::kTH2F, {{600, 0, 2 * M_PI}, {18, -4.6, -1.}}}});
+      registry.add({"TracksToPartPtEta", " ; p_{T} (GeV/c); #eta", {HistType::kTH2F, {PtAxis, {18, -4.6, -1.}}}}); //
+      registry.add({"TracksPtEtaGen", " ; p_{T} (GeV/c); #eta", {HistType::kTH2F, {PtAxis, {18, -4.6, -1.}}}});
+      registry.add({"TracksPtEtaGen_t", " ; p_{T} (GeV/c); #eta", {HistType::kTH2F, {PtAxis, {18, -4.6, -1.}}}});
       registry.add({"EventEfficiency", "; status; events", {HistType::kTH1F, {{5, 0.5, 5.5}}}});
       registry.add({"NotFoundEventZvtx", " ; Z_{vtx}", {HistType::kTH1F, {{201, -20.1, 20.1}}}});
 
@@ -120,6 +129,7 @@ struct PseudorapidityDensityMFT {
         float phi = track.phi();
         o2::math_utils::bringTo02Pi(phi);
         registry.fill(HIST("TracksPhiEta"), phi, track.eta());
+        registry.fill(HIST("TracksPtEta"), track.pt(), track.eta());
       }
     } else {
       registry.fill(HIST("EventSelection"), 4.);
@@ -131,7 +141,6 @@ struct PseudorapidityDensityMFT {
 
   void processGen(aod::McCollisions::iterator const& mcCollision, o2::soa::SmallGroups<soa::Join<aod::Collisions, aod::EvSels, aod::McCollisionLabels>> const& collisions, soa::Filtered<Particles> const& particles, aod::MFTTracks const& tracks)
   {
-
     registry.fill(HIST("EventEfficiency"), 1.);
 
     bool atLeastOne = false;
@@ -151,23 +160,47 @@ struct PseudorapidityDensityMFT {
     if (collisions.size() == 0) {
       registry.fill(HIST("NotFoundEventZvtx"), mcCollision.posZ());
     }
+    auto nCharged = 0;
     for (auto& particle : particles) {
       auto p = pdg->GetParticle(particle.pdgCode());
       auto charge = 0;
       if (p != nullptr) {
         charge = (int)p->Charge();
       }
-      if (charge != 0) {
-        registry.fill(HIST("TracksEtaZvtxGen_t"), particle.eta(), mcCollision.posZ());
-        if (atLeastOne) {
-          registry.fill(HIST("TracksEtaZvtxGen"), particle.eta(), mcCollision.posZ());
+      if (std::abs(charge) < 3.) {
+        continue;
+      }
+
+      registry.fill(HIST("TracksEtaZvtxGen_t"), particle.eta(), mcCollision.posZ());
+      if (atLeastOne) {
+        registry.fill(HIST("TracksEtaZvtxGen"), particle.eta(), mcCollision.posZ());
+        registry.fill(HIST("TracksPtEtaGen"), particle.pt(), particle.eta());
+      }
+      registry.fill(HIST("TracksPhiEtaGen"), particle.phi(), particle.eta());
+      registry.fill(HIST("TracksPtEtaGen_t"), particle.pt(), particle.eta());
+
+      nCharged++;
+    }
+    registry.fill(HIST("EventsNtrkZvtxGen_t"), nCharged, mcCollision.posZ());
+  }
+
+  PROCESS_SWITCH(PseudorapidityDensityMFT, processGen, "Process generator-level info", false);
+
+  void processGenPt(soa::Join<aod::Collisions, aod::EvSels>::iterator const& collision, MFTTracksLabeled const& tracks, aod::McParticles const&)
+  {
+    //In the MFT the measurement of pT is not precise, so we access it by using the particle's pT instead
+    if (!useEvSel || (useEvSel && collision.sel8())) {
+      for (auto& track : tracks) {
+        if (!track.has_mcParticle()) {
+          continue;
         }
-        registry.fill(HIST("TracksPhiEtaGen"), particle.phi(), particle.eta());
+        auto particle = track.mcParticle();
+        registry.fill(HIST("TracksToPartPtEta"), particle.pt(), particle.eta());
       }
     }
   }
 
-  PROCESS_SWITCH(PseudorapidityDensityMFT, processGen, "Process generator-level info", false);
+  PROCESS_SWITCH(PseudorapidityDensityMFT, processGenPt, "Process particle-level info of pt", false);
 };
 
 WorkflowSpec
