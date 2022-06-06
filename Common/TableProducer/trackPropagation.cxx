@@ -127,6 +127,7 @@ struct TrackPropagation {
 
     for (auto& track : tracks) {
       auto trackPar = getTrackPar(track);
+      dcaInfo[0]=0; dcaInfo[1]=0;
       // Only propagate tracks which have passed the innermost wall of the TPC (e.g. skipping loopers etc). Others fill unpropagated.
       if (track.x() < o2::constants::geom::XTPCInnerRef + 0.1) {
         if (track.has_collision()) {
@@ -154,7 +155,7 @@ struct TrackPropagation {
     o2::dataformats::DCA dcaInfoCov;
     o2::dataformats::VertexBase vtx;
     for (auto& track : tracks) {
-
+      dcaInfoCov.set(0,0,0,0,0);
       auto trackParCov = getTrackParCov(track);
       // Only propagate tracks which have passed the innermost wall of the TPC (e.g. skipping loopers etc). Others fill unpropagated.
       if (track.x() < o2::constants::geom::XTPCInnerRef + 0.1) {
