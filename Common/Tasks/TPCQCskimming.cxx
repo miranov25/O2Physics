@@ -269,15 +269,17 @@ struct OutputTracks {
       //    https://github.com/AliceO2Group/O2Physics/blob/master/Common/DataModel/TrackSelectionTables.h
       float dcaXY= track.dcaXY();
       float dcaZ= track.dcaZ();
+      float dcaSigmaY2= track.dcaSigmaY2();
+       float dcaSigmaZ2= track.dcaSigmaZ2();
       // track extended table
       // Extra - table variables as in the https://github.com/AliceO2Group/AliceO2/blob/cab4b330a261046eba9aa628781754da4e849205/Framework/Core/include/Framework/AnalysisDataModel.h#L202
        uint32_t flags= track.flags();
-       uint8_t itsClusterMap=track.itsClusterMap();
-        uint8_t tpcNClsFindable=track.tpcNClsFindable();
+       short itsClusterMap=track.itsClusterMap();
+        short tpcNClsFindable=track.tpcNClsFindable();
         short  tpcNClsFindableMinusFound=track.tpcNClsFindableMinusFound();             //! TPC Clusters: Findable - Found
         short tpcNClsFindableMinusCrossedRows=track.tpcNClsFindableMinusCrossedRows(); //! TPC Clusters: Findable - crossed rows
-        uint8_t tpcNClsShared =track.tpcNClsShared();                                    //! Number of shared TPC clusters
-        uint8_t trdPattern= track.trdPattern();                                       //! Contributor to the track on TRD layer in bits 0-5, starting from the innermost
+        short tpcNClsShared =track.tpcNClsShared();                                    //! Number of shared TPC clusters
+        short trdPattern= track.trdPattern();                                       //! Contributor to the track on TRD layer in bits 0-5, starting from the innermost
         float itsChi2NCl=track.itsChi2NCl();                                          //! Chi2 / cluster for the ITS track segment
         float tpcChi2NCl=track.tpcChi2NCl();                                          //! Chi2 / cluster for the TPC track segment
         float trdChi2=track.trdChi2();                                                //! Chi2 for the TRD track segment
@@ -342,6 +344,8 @@ DECLARE_SOA_COLUMN(TrackTimeRes, trackTimeRes, float);                          
           // extended
           "dcaXY="<<dcaXY<<
           "dcaZ="<<dcaZ<<
+          "dcaSigmaY2="<<dcaSigmaY2<<
+          "dcaSigmaZ2="<<dcaSigmaZ2<<
           // extra
           "flags="<<flags<<
           "itsClusterMap="<<itsClusterMap<<
