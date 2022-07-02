@@ -274,12 +274,12 @@ struct OutputTracks {
       // track extended table
       // Extra - table variables as in the https://github.com/AliceO2Group/AliceO2/blob/cab4b330a261046eba9aa628781754da4e849205/Framework/Core/include/Framework/AnalysisDataModel.h#L202
        uint32_t flags= track.flags();
-       short itsClusterMap=track.itsClusterMap();
-        short tpcNClsFindable=track.tpcNClsFindable();
-        short  tpcNClsFindableMinusFound=track.tpcNClsFindableMinusFound();             //! TPC Clusters: Findable - Found
-        short tpcNClsFindableMinusCrossedRows=track.tpcNClsFindableMinusCrossedRows(); //! TPC Clusters: Findable - crossed rows
-        short tpcNClsShared =track.tpcNClsShared();                                    //! Number of shared TPC clusters
-        short trdPattern= track.trdPattern();                                       //! Contributor to the track on TRD layer in bits 0-5, starting from the innermost
+       int16_t itsClusterMap=track.itsClusterMap();
+        int16_t tpcNClsFindable=track.tpcNClsFindable();
+        int16_t  tpcNClsFindableMinusFound=track.tpcNClsFindableMinusFound();             //! TPC Clusters: Findable - Found
+        int16_t tpcNClsFindableMinusCrossedRows=track.tpcNClsFindableMinusCrossedRows(); //! TPC Clusters: Findable - crossed rows
+        int16_t tpcNClsShared =track.tpcNClsShared();                                    //! Number of shared TPC clusters
+        int16_t trdPattern= track.trdPattern();                                       //! Contributor to the track on TRD layer in bits 0-5, starting from the innermost
         float itsChi2NCl=track.itsChi2NCl();                                          //! Chi2 / cluster for the ITS track segment
         float tpcChi2NCl=track.tpcChi2NCl();                                          //! Chi2 / cluster for the TPC track segment
         float trdChi2=track.trdChi2();                                                //! Chi2 for the TRD track segment

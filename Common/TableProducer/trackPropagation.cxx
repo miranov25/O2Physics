@@ -129,17 +129,18 @@ struct TrackPropagation {
       auto trackPar = getTrackPar(track);
       dcaInfo[0]=0; dcaInfo[1]=0;
       // Only propagate tracks which have passed the innermost wall of the TPC (e.g. skipping loopers etc). Others fill unpropagated.
+      bool propagationStatus=false;
       if (track.x() < o2::constants::geom::XTPCInnerRef + 0.1) {
         if (track.has_collision()) {
           auto const& collision = track.collision();
-          o2::base::Propagator::Instance()->propagateToDCABxByBz({collision.posX(), collision.posY(), collision.posZ()}, trackPar, 2.f, matCorr, &dcaInfo);
+          propagationStatus=o2::base::Propagator::Instance()->propagateToDCABxByBz({collision.posX(), collision.posY(), collision.posZ()}, trackPar, 2.f, matCorr, &dcaInfo);
         } else {
           o2::base::Propagator::Instance()->propagateToDCABxByBz({mVtx->getX(), mVtx->getY(), mVtx->getZ()}, trackPar, 2.f, matCorr, &dcaInfo);
         }
       }
       FillTracksPar(track, trackPar);
       if (fillTracksExtended) {
-        tracksExtended(dcaInfo[0], dcaInfo[1]);
+        tracksExtended(dcaInfo[0], dcaInfo[1],0,0,0);
       }
     }
   }
@@ -172,7 +173,7 @@ struct TrackPropagation {
       }
       FillTracksPar(track, trackParCov);
       if (fillTracksExtended) {
-        tracksExtended(dcaInfoCov.getY(), dcaInfoCov.getZ());
+        tracksExtended(dcaInfoCov.getY(), dcaInfoCov.getZ(),dcaInfoCov.getSigmaY2(),dcaInfoCov.getSigmaZ2(),dcaInfoCov.getSigmaYZ());
       }
       // TODO do we keep the rho as 0? Also the sigma's are duplicated information
       tracksParCovPropagated(std::sqrt(trackParCov.getSigmaY2()), std::sqrt(trackParCov.getSigmaZ2()), std::sqrt(trackParCov.getSigmaSnp2()),

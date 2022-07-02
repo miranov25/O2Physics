@@ -101,7 +101,7 @@ struct TrackExtension {
           trackPar.propagateParamToDCA({collision.posX(), collision.posY(), collision.posZ()}, mMagField, &dca);
         }
       }
-      extendedTrackQuantities(dca[0], dca[1]);
+      extendedTrackQuantities(dca[0], dca[1],0,0,0);
     }
   }
   PROCESS_SWITCH(TrackExtension, processRun2, "Process Run2 track extension task", true);
@@ -144,7 +144,7 @@ struct TrackExtension {
           }
         }
       }
-      extendedTrackQuantities(dca[0], dca[1]);
+      extendedTrackQuantities(dca[0], dca[1],0,0,0);
     }
   }
   PROCESS_SWITCH(TrackExtension, processRun3, "Process Run3 track extension task", false);
