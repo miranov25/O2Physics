@@ -18,7 +18,7 @@
 #include "Framework/HistogramRegistry.h"
 #include "Framework/StaticFor.h"
 #include "Common/DataModel/TrackSelectionTables.h"
-#include "Common/Core/PID/PIDResponse.h"
+#include "Common/DataModel/PIDResponse.h"
 #include <TParameter.h>
 #include "Tools/PIDML/pidOnnxModel.h"
 #include <string>
@@ -369,7 +369,7 @@ struct pidml {
   }
 
   Filter trackFilter = requireGlobalTrackInFilter();
-  using pidTracks = soa::Filtered<soa::Join<aod::Tracks, aod::TracksExtra, aod::McTrackLabels, aod::TracksExtended, aod::TrackSelection, aod::pidTOFbeta, aod::TOFSignal>>;
+  using pidTracks = soa::Filtered<soa::Join<aod::Tracks, aod::TracksExtra, aod::McTrackLabels, aod::TracksDCA, aod::TrackSelection, aod::pidTOFbeta, aod::TOFSignal>>;
   void process(pidTracks const& tracks, aod::McParticles const& mcParticles)
   {
     for (auto& track : tracks) {

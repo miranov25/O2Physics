@@ -50,11 +50,11 @@ struct TrackPropagation {
   Produces<aod::StoredTracksCov> tracksParCovPropagated;
   Produces<aod::TracksCovExtension> tracksParCovExtensionPropagated;
 
-  Produces<aod::TracksExtended> tracksExtended;
+  Produces<aod::TracksDCA> tracksDCA;
 
   Service<o2::ccdb::BasicCCDBManager> ccdb;
 
-  bool fillTracksExtended = false;
+  bool fillTracksDCA = false;
   int runNumber = -1;
 
   o2::base::Propagator::MatCorrType matCorr = o2::base::Propagator::MatCorrType::USEMatCorrLUT;
@@ -79,8 +79,8 @@ struct TrackPropagation {
     auto& workflows = initContext.services().get<RunningWorkflowInfo const>();
     for (DeviceSpec const& device : workflows.devices) {
       for (auto const& input : device.inputs) {
-        if (input.matcher.binding == "TracksExtended") {
-          fillTracksExtended = true;
+        if (input.matcher.binding == "TracksDCA") {
+          fillTracksDCA = true;
         }
       }
     }
@@ -123,9 +123,10 @@ struct TrackPropagation {
     initCCDB(bcs.begin());
 
     gpu::gpustd::array<float, 2> dcaInfo;
-    o2::dataformats::VertexBase vtx;
 
     for (auto& track : tracks) {
+      dcaInfo[0] = 999;
+      dcaInfo[1] = 999;
       auto trackPar = getTrackPar(track);
       dcaInfo[0]=0; dcaInfo[1]=0;
       // Only propagate tracks which have passed the innermost wall of the TPC (e.g. skipping loopers etc). Others fill unpropagated.
@@ -139,8 +140,8 @@ struct TrackPropagation {
         }
       }
       FillTracksPar(track, trackPar);
-      if (fillTracksExtended) {
-        tracksExtended(dcaInfo[0], dcaInfo[1],0,0,0);
+      if (fillTracksDCA) {
+        tracksDCA(dcaInfo[0], dcaInfo[1]);
       }
     }
   }
@@ -155,8 +156,9 @@ struct TrackPropagation {
 
     o2::dataformats::DCA dcaInfoCov;
     o2::dataformats::VertexBase vtx;
+
     for (auto& track : tracks) {
-      dcaInfoCov.set(0,0,0,0,0);
+      dcaInfoCov.set(999, 999, 999, 999, 999);
       auto trackParCov = getTrackParCov(track);
       // Only propagate tracks which have passed the innermost wall of the TPC (e.g. skipping loopers etc). Others fill unpropagated.
       if (track.x() < o2::constants::geom::XTPCInnerRef + 0.1) {
@@ -172,8 +174,8 @@ struct TrackPropagation {
         }
       }
       FillTracksPar(track, trackParCov);
-      if (fillTracksExtended) {
-        tracksExtended(dcaInfoCov.getY(), dcaInfoCov.getZ(),dcaInfoCov.getSigmaY2(),dcaInfoCov.getSigmaZ2(),dcaInfoCov.getSigmaYZ());
+      if (fillTracksDCA) {
+        tracksDCA(dcaInfoCov.getY(), dcaInfoCov.getZ());
       }
       // TODO do we keep the rho as 0? Also the sigma's are duplicated information
       tracksParCovPropagated(std::sqrt(trackParCov.getSigmaY2()), std::sqrt(trackParCov.getSigmaZ2()), std::sqrt(trackParCov.getSigmaSnp2()),

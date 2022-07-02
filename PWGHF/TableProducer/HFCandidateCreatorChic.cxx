@@ -132,7 +132,7 @@ struct HFCandidateCreatorChic {
         if (ecal.e() < eneGammaMin) {
           continue;
         }
-        auto etagamma = RecoDecay::Eta(array{ecal.px(), ecal.py(), ecal.pz()});
+        auto etagamma = RecoDecay::eta(array{ecal.px(), ecal.py(), ecal.pz()});
         if (etagamma < etaGammaMin || etagamma > etaGammaMax) { // calcolare la pseudorapidità da posz
           continue;
         }
@@ -178,7 +178,7 @@ struct HFCandidateCreatorChic {
 
         // calculate invariant mass
         auto arrayMomenta = array{pvecJpsi, pvecGamma};
-        massJpsiGamma = RecoDecay::M(std::move(arrayMomenta), array{massJpsi, 0.});
+        massJpsiGamma = RecoDecay::m(std::move(arrayMomenta), array{massJpsi, 0.});
         if (jpsiCand.isSelJpsiToEE() > 0) {
           hMassChicToJpsiToEEGamma->Fill(massJpsiGamma);
         }
@@ -205,7 +205,7 @@ struct HFCandidateCreatorChicMC {
   OutputObj<TH1F> hEphotonMatched{TH1F("hEphotonMatched", "2-prong candidates;inv. mass (J/#psi (#rightarrow #mu+ #mu-)) (GeV/#it{c}^{2});entries", 500, 0., 5.)};
   OutputObj<TH1F> hMassChicToJpsiToMuMuGammaMatched{TH1F("hMassChicToJpsiToMuMuGammaMatched", "2-prong candidates;inv. mass (J/#psi (#rightarrow #mu+ #mu-) #gamma) (GeV/#it{c}^{2});entries", 500, 0., 5.)};
   void process(aod::HfCandChic const& candidates,
-               aod::HfCandProng2,
+               aod::HfCandProng2 const&,
                aod::BigTracksMC const& tracks,
                aod::McParticles const& particlesMC,
                aod::ECALs const& ecals)

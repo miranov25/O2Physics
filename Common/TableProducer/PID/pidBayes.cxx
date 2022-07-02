@@ -22,11 +22,12 @@
 #include "Framework/RunningWorkflowInfo.h"
 #include "Framework/Array2D.h"
 #include <CCDB/BasicCCDBManager.h>
-#include "Common/Core/PID/PIDResponse.h"
+#include "Common/DataModel/PIDResponse.h"
 #include "Common/Core/PID/PIDTOF.h"
 #include "Common/Core/PID/TPCPIDResponse.h"
 #include "Common/DataModel/Multiplicity.h"
 #include "Common/DataModel/TrackSelectionTables.h"
+#include "pidTOFBase.h"
 
 using namespace o2;
 using namespace o2::framework;
@@ -43,7 +44,7 @@ void customize(std::vector<o2::framework::ConfigParamSpec>& workflowOptions)
 #include "Framework/runDataProcessing.h"
 
 struct bayesPid {
-  using Trks = soa::Join<aod::Tracks, aod::TracksExtra, aod::TOFSignal>;
+  using Trks = soa::Join<aod::Tracks, aod::TracksExtra, aod::TOFSignal, aod::TOFEvTime, aod::pidEvTimeFlags>;
   using Coll = soa::Join<aod::Collisions, aod::Mults>;
 
   // Tables to produce

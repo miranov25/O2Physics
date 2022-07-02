@@ -36,7 +36,7 @@
 #include "ReconstructionDataFormats/Track.h"
 #include "Common/Core/RecoDecay.h"
 #include "Common/Core/trackUtilities.h"
-#include "Common/Core/PID/PIDResponse.h"
+#include "Common/DataModel/PIDResponse.h"
 #include "Common/DataModel/StrangenessTables.h"
 #include "Common/Core/TrackSelection.h"
 #include "Common/DataModel/TrackSelectionTables.h"
@@ -91,11 +91,11 @@ struct lambdakzeroprefilter {
   Produces<aod::V0GoodNegTracks> v0GoodNegTracks;
 
   // still exhibiting issues? To be checked
-  // Partition<soa::Join<aod::FullTracks, aod::TracksExtended>> goodPosTracks = aod::track::signed1Pt > 0.0f && aod::track::dcaXY > dcapostopv;
-  // Partition<soa::Join<aod::FullTracks, aod::TracksExtended>> goodNegTracks = aod::track::signed1Pt < 0.0f && aod::track::dcaXY < -dcanegtopv;
+  // Partition<soa::Join<aod::FullTracks, aod::TracksDCA>> goodPosTracks = aod::track::signed1Pt > 0.0f && aod::track::dcaXY > dcapostopv;
+  // Partition<soa::Join<aod::FullTracks, aod::TracksDCA>> goodNegTracks = aod::track::signed1Pt < 0.0f && aod::track::dcaXY < -dcanegtopv;
 
   void process(aod::Collision const& collision,
-               soa::Join<aod::FullTracks, aod::TracksExtended> const& tracks)
+               soa::Join<aod::FullTracks, aod::TracksDCA> const& tracks)
   {
     for (auto& t0 : tracks) {
       if (tpcrefit) {
@@ -229,7 +229,7 @@ struct lambdakzerofinder {
         fitter.getTrack(0).getPxPyPzGlo(pvec0);
         fitter.getTrack(1).getPxPyPzGlo(pvec1);
 
-        auto thisv0cospa = RecoDecay::CPA(array{collision.posX(), collision.posY(), collision.posZ()},
+        auto thisv0cospa = RecoDecay::cpa(array{collision.posX(), collision.posY(), collision.posZ()},
                                           array{vtx[0], vtx[1], vtx[2]}, array{pvec0[0] + pvec1[0], pvec0[1] + pvec1[1], pvec0[2] + pvec1[2]});
         if (thisv0cospa < v0cospa) {
           continue;
@@ -237,8 +237,8 @@ struct lambdakzerofinder {
 
         lNCand++;
         v0(t0.collisionId(), t0.globalIndex(), t1.globalIndex());
-        v0data(t0.globalIndex(), t1.globalIndex(), t0.collisionId(),
-               fitter.getTrack(0).getX(), fitter.getTrack(1).getX(), 0,
+        v0data(t0.globalIndex(), t1.globalIndex(), t0.collisionId(), 0,
+               fitter.getTrack(0).getX(), fitter.getTrack(1).getX(),
                pos[0], pos[1], pos[2],
                pvec0[0], pvec0[1], pvec0[2],
                pvec1[0], pvec1[1], pvec1[2],

@@ -26,7 +26,7 @@
 #include "Framework/AnalysisTask.h"
 #include "ReconstructionDataFormats/Track.h"
 #include <CCDB/BasicCCDBManager.h>
-#include "Common/Core/PID/PIDResponse.h"
+#include "Common/DataModel/PIDResponse.h"
 #include "Common/Core/PID/TPCPIDResponse.h"
 #include "Framework/AnalysisDataModel.h"
 #include "Common/DataModel/Multiplicity.h"
@@ -98,18 +98,7 @@ struct tpcPid {
   {
     // Checking the tables are requested in the workflow and enabling them
     auto enableFlag = [&](const std::string particle, Configurable<int>& flag) {
-      const std::string table = "pidTPC" + particle;
-      if (isTableRequiredInWorkflow(initContext, table)) {
-        if (flag < 0) {
-          flag.value = 1;
-          LOG(info) << "Auto-enabling table: " + table;
-        } else if (flag > 0) {
-          flag.value = 1;
-          LOG(info) << "Table enabled: " + table;
-        } else {
-          LOG(info) << "Table disabled: " + table;
-        }
-      }
+      enableFlagIfTableRequired(initContext, "pidTPC" + particle, flag);
     };
     enableFlag("El", pidEl);
     enableFlag("Mu", pidMu);
@@ -136,12 +125,15 @@ struct tpcPid {
       const std::string path = ccdbPath.value;
       const auto time = ccdbTimestamp.value;
       ccdb->setURL(url.value);
-      ccdb->setTimestamp(time);
       ccdb->setCaching(true);
       ccdb->setLocalObjectValidityChecking();
       ccdb->setCreatedNotAfter(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
-      response.SetParameters(ccdb->getForTimeStamp<o2::pid::tpc::Response>(path, time));
-      LOGP(info, "Loading TPC response from CCDB, using path: {} for ccdbTimestamp {}", path, time);
+      if (time != 0) {
+        LOGP(info, "Initialising TPC PID response for fixed timestamp {}:", time);
+        ccdb->setTimestamp(time);
+        response.SetParameters(ccdb->getForTimeStamp<o2::pid::tpc::Response>(path, time));
+      } else
+        LOGP(info, "Initialising default TPC PID response:");
       response.PrintAll();
     }
 

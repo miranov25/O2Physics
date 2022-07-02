@@ -30,7 +30,6 @@ namespace fullEvent
 DECLARE_SOA_INDEX_COLUMN(BC, bc); //! Most probably BC to where this collision has occured
 DECLARE_SOA_COLUMN(IsEventReject, isEventReject, int);
 DECLARE_SOA_COLUMN(RunNumber, runNumber, int);
-DECLARE_SOA_COLUMN(Vz, vz, float);
 DECLARE_SOA_COLUMN(V0M, v0m, int);
 } // namespace fullEvent
 DECLARE_SOA_TABLE(LfCandNucleusFullEvents, "AOD", "LFNUCLEvent",
@@ -77,6 +76,9 @@ DECLARE_SOA_COLUMN(NcrTPC, ncrTPC, int);
 DECLARE_SOA_COLUMN(RTPC, rTPC, float);
 DECLARE_SOA_COLUMN(Chi2TPC, chi2TPC, float);
 DECLARE_SOA_COLUMN(Chi2ITS, chi2ITS, float);
+// For MC
+DECLARE_SOA_COLUMN(IsPhysicalPrimary, isPhysicalPrimary, bool);
+DECLARE_SOA_COLUMN(ProducedByGenerator, producedByGenerator, bool);
 } // namespace full
 
 /*
@@ -113,7 +115,9 @@ DECLARE_SOA_TABLE(LfCandNucleusFull, "AOD", "LFNUCL",
                   full::Chi2TPC,
                   full::Chi2ITS);
 DECLARE_SOA_TABLE(LfCandNucleusMC, "AOD", "LFNUCLMC",
-                  mcparticle::PdgCode);
+                  mcparticle::PdgCode,
+                  full::IsPhysicalPrimary,
+                  full::ProducedByGenerator);
 
 } // namespace o2::aod
 #endif

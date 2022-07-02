@@ -198,7 +198,7 @@ struct HFCandidateCreatorLb {
 
         // calculate invariant mass
         auto arrayMomenta = array{pvecLc, pvecPion};
-        massLcPi = RecoDecay::M(std::move(arrayMomenta), array{massLc, massPi});
+        massLcPi = RecoDecay::m(std::move(arrayMomenta), array{massLc, massPi});
         if (lcCand.isSelLcpKpi() > 0) {
           hMassLbToLcPi->Fill(massLcPi);
         }
@@ -222,7 +222,7 @@ struct HFCandidateCreatorLbMC {
   Produces<aod::HfCandLbMCGen> rowMCMatchGen;
 
   void process(aod::HfCandLb const& candidates,
-               aod::HfCandProng3,
+               aod::HfCandProng3 const&,
                aod::BigTracksMC const& tracks,
                aod::McParticles const& particlesMC)
   {

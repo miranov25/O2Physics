@@ -14,7 +14,7 @@
 #include "Framework/AnalysisTask.h"
 #include "Framework/AnalysisDataModel.h"
 #include "Framework/ASoAHelpers.h"
-#include "Common/Core/PID/PIDResponse.h"
+#include "Common/DataModel/PIDResponse.h"
 #include "Common/DataModel/TrackSelectionTables.h"
 
 #include "Common/DataModel/EventSelection.h"
@@ -116,7 +116,7 @@ struct NucleiSpectraEfficiencyRec {
   Filter collisionFilter = nabs(aod::collision::posZ) < cfgCutVertex;
   Filter trackFilter = (nabs(aod::track::eta) < cfgCutEta) && (requireGlobalTrackInFilter());
 
-  using TrackCandidates = soa::Filtered<soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksExtended, aod::McTrackLabels, aod::pidTPCFullHe, aod::pidTOFFullHe, aod::TrackSelection>>;
+  using TrackCandidates = soa::Filtered<soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksDCA, aod::McTrackLabels, aod::pidTPCFullHe, aod::pidTOFFullHe, aod::TrackSelection>>;
 
   void process(soa::Filtered<soa::Join<aod::Collisions, aod::McCollisionLabels>>::iterator const& collision,
                TrackCandidates const& tracks, aod::McParticles_000& mcParticles, aod::McCollisions const& mcCollisions)

@@ -10,7 +10,7 @@
 // or submit itself to any jurisdiction.
 
 #include "Framework/AnalysisDataModel.h"
-#include "Common/Core/PID/PIDResponse.h"
+#include "Common/DataModel/PIDResponse.h"
 #include "Common/DataModel/StrangenessTables.h"
 #include "Common/DataModel/TrackSelectionTables.h"
 
@@ -76,30 +76,6 @@ DECLARE_SOA_TABLE(McGammasTrue, "AOD", "MCGATRUE",
                   gammamctrue::V0Radius,
 
                   // Dynamic columns
-                  mcparticle::ProducedByGenerator<mcparticle::Flags>,
-                  mcparticle::FromBackgroundEvent<mcparticle::Flags>,
-                  mcparticle::GetGenStatusCode<mcparticle::Flags, mcparticle::StatusCode>,
-                  mcparticle::GetProcess<mcparticle::Flags, mcparticle::StatusCode>,
-                  mcparticle::IsPhysicalPrimary<mcparticle::Flags>);
-
-namespace gammadaughtermctrue
-{
-DECLARE_SOA_INDEX_COLUMN_FULL(Mother0, mother0, int64_t, McGammasTrue, ""); //! index of first mother
-DECLARE_SOA_COLUMN(NMothers, nMothers, int);                                //! the number of mothers
-} // namespace gammadaughtermctrue
-
-// table to hold mc truth information of daughter particles of MC gammas
-DECLARE_SOA_TABLE(McGammaDaughtersTrue, "AOD", "MCGADAUGHTRUE",
-                  o2::soa::Index<>,
-                  mcparticle::McCollisionId, // SFS maybe drop since there is already a pointer to MCGammas which point to mccollision. But maybe still good to have for correct automatic grouping - not sure about that
-                  gammadaughtermctrue::Mother0Id,
-                  gammadaughtermctrue::NMothers,
-
-                  mcparticle::PdgCode, mcparticle::StatusCode, mcparticle::Flags,
-                  mcparticle::Px, mcparticle::Py, mcparticle::Pz, mcparticle::E,
-                  mcparticle::Vx, mcparticle::Vy, mcparticle::Vz, mcparticle::Vt,
-
-                  // dynamic columns
                   mcparticle::ProducedByGenerator<mcparticle::Flags>,
                   mcparticle::FromBackgroundEvent<mcparticle::Flags>,
                   mcparticle::GetGenStatusCode<mcparticle::Flags, mcparticle::StatusCode>,

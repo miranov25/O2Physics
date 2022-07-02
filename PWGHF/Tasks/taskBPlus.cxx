@@ -75,7 +75,7 @@ struct HfTaskBplus {
 
   Filter filterSelectCandidates = (aod::hf_selcandidate_bplus::isSelBPlusToD0Pi >= selectionFlagBPlus);
 
-  void process(soa::Join<aod::Collisions, aod::CentRun2V0Ms>::iterator const& collision, soa::Filtered<soa::Join<aod::HfCandBPlus, aod::HFSelBPlusToD0PiCandidate>> const& candidates, soa::Join<aod::HfCandProng2, aod::HFSelD0Candidate>, aod::BigTracks)
+  void process(soa::Join<aod::Collisions, aod::CentRun2V0Ms>::iterator const& collision, soa::Filtered<soa::Join<aod::HfCandBPlus, aod::HFSelBPlusToD0PiCandidate>> const& candidates, soa::Join<aod::HfCandProng2, aod::HFSelD0Candidate> const&, aod::BigTracks const&)
   {
     auto centrality = collision.centRun2V0M();
     registry.fill(HIST("hCentrality"), centrality);
@@ -222,7 +222,7 @@ struct HfTaskBplusMc {
     for (auto& particle : particlesMC) {
       if (std::abs(particle.flagMCMatchGen()) == 1 << hf_cand_bplus::DecayType::BPlusToD0Pi) {
 
-        auto yParticle = RecoDecay::Y(array{particle.px(), particle.py(), particle.pz()}, RecoDecay::getMassPDG(pdg::Code::kBPlus));
+        auto yParticle = RecoDecay::y(array{particle.px(), particle.py(), particle.pz()}, RecoDecay::getMassPDG(pdg::Code::kBPlus));
         if (cutYCandMax >= 0. && std::abs(yParticle) > cutYCandMax) {
           continue;
         }
@@ -232,7 +232,7 @@ struct HfTaskBplusMc {
         for (auto& daught : particle.daughters_as<aod::McParticles>()) {
           ptProngs[counter] = daught.pt();
           etaProngs[counter] = daught.eta();
-          yProngs[counter] = RecoDecay::Y(array{daught.px(), daught.py(), daught.pz()}, RecoDecay::getMassPDG(daught.pdgCode()));
+          yProngs[counter] = RecoDecay::y(array{daught.px(), daught.py(), daught.pz()}, RecoDecay::getMassPDG(daught.pdgCode()));
           counter++;
         }
 

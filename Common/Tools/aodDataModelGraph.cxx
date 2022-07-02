@@ -10,7 +10,7 @@
 // or submit itself to any jurisdiction.
 #include "Framework/AnalysisDataModel.h"
 #include "PWGHF/DataModel/HFSecondaryVertex.h"
-#include "Common/Core/PID/PIDResponse.h"
+#include "Common/DataModel/PIDResponse.h"
 #include "Common/DataModel/Multiplicity.h"
 #include "Common/DataModel/Centrality.h"
 #include "Common/DataModel/TrackSelectionTables.h"
@@ -79,7 +79,7 @@ static std::vector<std::pair<std::string, StyleType>> tableStyles = {
   {"V0Datas", StyleType::GREEN},
   {"CascData", StyleType::GREEN},
   {"TrackSelection", StyleType::GREEN},
-  {"TracksExtended", StyleType::GREEN},
+  {"TracksDCA", StyleType::GREEN},
   {"Transient", StyleType::GREEN},
   {"Extension", StyleType::GREEN},
 };
@@ -258,7 +258,7 @@ int main(int, char**)
   displayEntity<FV0Cs>();
   displayEntity<Run2BCInfos>();
 
-  displayEntities<Tracks, TracksCov, TracksExtra, TracksExtended, TrackSelection,
+  displayEntities<Tracks, TracksCov, TracksExtra, TracksDCA, TrackSelection,
                   pidTOFFullEl, pidTOFFullMu, pidTOFFullPi,
                   pidTOFFullKa, pidTOFFullPr, pidTOFFullDe,
                   pidTOFFullTr, pidTOFFullHe, pidTOFFullAl,

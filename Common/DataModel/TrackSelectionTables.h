@@ -28,6 +28,7 @@ DECLARE_SOA_COLUMN(DcaSigmaYZ, dcaSigmaYZ, float);   //! Impact parameter cov in
 struct TrackSelectionFlags {
  public:
   typedef uint16_t flagtype;
+  // Single cut masks
   static constexpr flagtype kTrackType = 1 << 0;
   static constexpr flagtype kPtRange = 1 << 1;
   static constexpr flagtype kEtaRange = 1 << 2;
@@ -43,11 +44,23 @@ struct TrackSelectionFlags {
   static constexpr flagtype kGoldenChi2 = 1 << 12;
   static constexpr flagtype kDCAxy = 1 << 13;
   static constexpr flagtype kDCAz = 1 << 14;
-  static constexpr flagtype kGlobalTrack = kTrackType | kPtRange | kEtaRange | kTPCNCls | kTPCCrossedRows | kTPCCrossedRowsOverNCls | kTPCChi2NDF | kTPCRefit | kITSNCls | kITSChi2NDF | kITSRefit | kITSHits | kGoldenChi2 | kDCAxy | kDCAz;
+  // Combo masks
+  static constexpr flagtype kQualityTracks = kTrackType | kTPCNCls | kTPCCrossedRows | kTPCCrossedRowsOverNCls | kTPCChi2NDF | kTPCRefit | kITSNCls | kITSChi2NDF | kITSRefit | kITSHits;
+  static constexpr flagtype kPrimaryTracks = kGoldenChi2 | kDCAxy | kDCAz;
+  static constexpr flagtype kInAcceptanceTracks = kPtRange | kEtaRange;
+  static constexpr flagtype kGlobalTrack = kQualityTracks | kPrimaryTracks | kInAcceptanceTracks;
+  static constexpr flagtype kGlobalTrackWoPtEta = kQualityTracks | kPrimaryTracks;
+  static constexpr flagtype kGlobalTrackWoDCA = kQualityTracks | kInAcceptanceTracks;
 };
 
-#define requireTrackCutInFilter(mask) (aod::track::trackCutFlag & aod::track::mask) == aod::track::mask
+#define requireTrackCutInFilter(mask) ((aod::track::trackCutFlag & aod::track::mask) == aod::track::mask)
+#define requireQualityTracksInFilter() requireTrackCutInFilter(TrackSelectionFlags::kQualityTracks)
+#define requirePrimaryTracksInFilter() requireTrackCutInFilter(TrackSelectionFlags::kPrimaryTracks)
+#define requireInAcceptanceTracksInFilter() requireTrackCutInFilter(TrackSelectionFlags::kInAcceptanceTracks)
 #define requireGlobalTrackInFilter() requireTrackCutInFilter(TrackSelectionFlags::kGlobalTrack)
+#define requireGlobalTrackWoPtEtaInFilter() requireTrackCutInFilter(TrackSelectionFlags::kGlobalTrackWoPtEta)
+#define requireGlobalTrackWoDCAInFilter() requireTrackCutInFilter(TrackSelectionFlags::kGlobalTrackWoDCA)
+#define requireTrackWithinBeamPipe (nabs(aod::track::x) < o2::constants::geom::XBeamPipeOuterRef)
 
 // Columns to store track filter decisions
 DECLARE_SOA_COLUMN(IsGlobalTrackSDD, isGlobalTrackSDD, uint8_t);               //!
@@ -74,7 +87,7 @@ DECLARE_DYN_TRKSEL_COLUMN(IsGlobalTrack, isGlobalTrack, TrackSelectionFlags::kGl
 #undef DECLARE_DYN_TRKSEL_COLUMN
 
 } // namespace track
-DECLARE_SOA_TABLE(TracksExtended, "AOD", "TRACKEXTENDED", //!
+DECLARE_SOA_TABLE(TracksDCA, "AOD", "TRACKDCA", //! DCA information for the track
                   track::DcaXY,
                   track::DcaZ,
                   track::DcaSigmaY2,
@@ -82,7 +95,7 @@ DECLARE_SOA_TABLE(TracksExtended, "AOD", "TRACKEXTENDED", //!
                   track::DcaSigmaYZ
                   );
 
-DECLARE_SOA_TABLE(TrackSelection, "AOD", "TRACKSELSTORE", //! Stored information on the track selection decision + split dynamic information
+DECLARE_SOA_TABLE(TrackSelection, "AOD", "TRACKSELECTION", //! Information on the track selection decision + split dynamic information
                   track::IsGlobalTrackSDD,
                   track::TrackCutFlag,
                   track::PassedTrackType<track::TrackCutFlag>,

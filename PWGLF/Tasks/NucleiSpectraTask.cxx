@@ -15,7 +15,7 @@
 #include "Framework/AnalysisTask.h"
 #include "Framework/AnalysisDataModel.h"
 #include "Framework/ASoAHelpers.h"
-#include "Common/Core/PID/PIDResponse.h"
+#include "Common/DataModel/PIDResponse.h"
 #include "Common/DataModel/TrackSelectionTables.h"
 
 #include "Common/DataModel/EventSelection.h"
@@ -69,7 +69,7 @@ struct NucleiSpectraTask {
   Filter collisionFilter = nabs(aod::collision::posZ) < cfgCutVertex;
   Filter trackFilter = (nabs(aod::track::eta) < cfgCutEta) && (requireGlobalTrackInFilter());
 
-  using TrackCandidates = soa::Filtered<soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksExtended, aod::pidTPCFullHe, aod::pidTOFFullHe, aod::TrackSelection, aod::TOFSignal>>;
+  using TrackCandidates = soa::Filtered<soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksDCA, aod::pidTPCFullHe, aod::pidTOFFullHe, aod::TrackSelection, aod::TOFSignal>>;
 
   void process(soa::Filtered<soa::Join<aod::Collisions, aod::EvSels>>::iterator const& collision, TrackCandidates const& tracks)
   {

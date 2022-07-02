@@ -22,7 +22,7 @@
 #include "Framework/HistogramRegistry.h"
 #include "Framework/ASoAHelpers.h"
 #include "Common/DataModel/TrackSelectionTables.h"
-#include "Common/Core/PID/PIDResponse.h"
+#include "Common/DataModel/PIDResponse.h"
 #include "Common/DataModel/EventSelection.h"
 #include "Common/DataModel/Multiplicity.h"
 #include "ReconstructionDataFormats/Track.h"
@@ -43,7 +43,7 @@ using FemtoFullCollision = soa::Join<aod::Collisions,
                                      aod::EvSels,
                                      aod::Mults>::iterator;
 using FemtoFullTracks = soa::Join<aod::FullTracks,
-                                  aod::TracksExtended, aod::TOFSignal,
+                                  aod::TracksDCA, aod::TOFSignal,
                                   aod::pidTPCEl, aod::pidTPCMu, aod::pidTPCPi,
                                   aod::pidTPCKa, aod::pidTPCPr, aod::pidTPCDe,
                                   aod::pidTOFEl, aod::pidTOFMu, aod::pidTOFPi,

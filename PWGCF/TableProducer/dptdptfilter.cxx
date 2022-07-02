@@ -16,7 +16,7 @@
 #include "Common/DataModel/Centrality.h"
 #include "Common/Core/TrackSelection.h"
 #include "Common/Core/TrackSelectionDefaults.h"
-#include "Common/Core/PID/PIDResponse.h"
+#include "Common/DataModel/PIDResponse.h"
 #include "PWGCF/Core/AnalysisConfigurableCuts.h"
 #include "PWGCF/DataModel/DptDptFiltered.h"
 #include "Common/DataModel/TrackSelectionTables.h"
@@ -47,10 +47,10 @@ using namespace o2::analysis;
 
 namespace o2::analysis::dptdptfilter
 {
-using DptDptFullTracksPID = soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksExtended, aod::TrackSelection, aod::pidTPCEl, aod::pidTPCMu, aod::pidTPCPi, aod::pidTPCKa, aod::pidTPCPr, aod::pidTOFEl, aod::pidTOFMu, aod::pidTOFPi, aod::pidTOFKa, aod::pidTOFPr>;
-using DptDptFullTracksPIDDetLevel = soa::Join<aod::Tracks, aod::McTrackLabels, aod::TracksExtra, aod::TracksExtended, aod::TrackSelection, aod::pidTPCEl, aod::pidTPCMu, aod::pidTPCPi, aod::pidTPCKa, aod::pidTPCPr, aod::pidTOFEl, aod::pidTOFMu, aod::pidTOFPi, aod::pidTOFKa, aod::pidTOFPr>;
-using DptDptFullTracks = soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksExtended, aod::TrackSelection>;
-using DptDptFullTracksDetLevel = soa::Join<aod::Tracks, aod::McTrackLabels, aod::TracksExtra, aod::TracksExtended, aod::TrackSelection>;
+using DptDptFullTracksPID = soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksDCA, aod::TrackSelection, aod::pidTPCEl, aod::pidTPCMu, aod::pidTPCPi, aod::pidTPCKa, aod::pidTPCPr, aod::pidTOFEl, aod::pidTOFMu, aod::pidTOFPi, aod::pidTOFKa, aod::pidTOFPr>;
+using DptDptFullTracksPIDDetLevel = soa::Join<aod::Tracks, aod::McTrackLabels, aod::TracksExtra, aod::TracksDCA, aod::TrackSelection, aod::pidTPCEl, aod::pidTPCMu, aod::pidTPCPi, aod::pidTPCKa, aod::pidTPCPr, aod::pidTOFEl, aod::pidTOFMu, aod::pidTOFPi, aod::pidTOFKa, aod::pidTOFPr>;
+using DptDptFullTracks = soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksDCA, aod::TrackSelection>;
+using DptDptFullTracksDetLevel = soa::Join<aod::Tracks, aod::McTrackLabels, aod::TracksExtra, aod::TracksDCA, aod::TrackSelection>;
 
 /// \enum MatchRecoGenSpecies
 /// \brief The species considered by the matching tast
