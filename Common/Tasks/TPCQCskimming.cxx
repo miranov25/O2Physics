@@ -219,8 +219,13 @@ struct OutputTracks {
     ic.services().get<CallbackService>().set(CallbackService::Id::Stop, finishFunction);
   }
 
-  void process(soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksDCA,aod::TracksCovIU> const& tracks, aod::Collisions const& collisions, aod::BCsWithTimestamps const& bcs)
-  //void process(soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksExtended,aod::TracksCov> const& tracks, aod::Collisions const& collisions, aod::BCsWithTimestamps const& bcs)
+//void process(soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksDCA,aod::TracksCovIU> const& tracks, aod::Collisions const& collisions, aod::BCsWithTimestamps const& bcs)
+  //2. working
+  // void process(soa::Join<aod::Tracks,aod::TracksCov,aod::TracksExtra, aod::TracksDCA> const& tracks, aod::Collisions const& collisions, aod::BCsWithTimestamps const& bcs)
+  //3.) void process(soa::Join<aod::Tracks,aod::TracksCov,aod::TracksExtra, aod::TracksDCA, aod::TracksIU,aod::TracksCovIU > const& tracks, aod::Collisions const& collisions, aod::BCsWithTimestamps const& bcs)
+  // 3. does not work
+  // 4.)
+  void process(soa::Join<aod::Tracks,aod::TracksCov,aod::TracksExtra, aod::TracksDCA > const& tracks, soa::Join< aod::TracksIU,aod::TracksCovIU> const &tracksIU, aod::Collisions const& collisions, aod::BCsWithTimestamps const& bcs)
 
   {
 
@@ -238,10 +243,13 @@ struct OutputTracks {
     //for (auto & collision : collisions){
     //   auto bc= collision.bc_as<aod::BCsWithTimestamps>();
     //}
-
-    for (auto& track : tracks) {
-      //auto trackPar = getTrackPar(track);
+    LOGP(info, "Tracks size {} {}", tracks.size(), tracksIU.size());
+    //for (auto& track : tracks) {
+    for (uint64_t i=0; i<tracks.size(); i++){
+      auto track = tracks.iteratorAt(i);
+      auto trackIU= tracksIU.iteratorAt(i);
       auto trackPar = getTrackParCov(track);
+      auto trackParIU = getTrackParCov(trackIU);
       // getDCA to beam pipe
       o2::math_utils::CircleXYf_t trcCircle;   // circle parameters for B ON data
       float sna, csa;
@@ -339,7 +347,8 @@ DECLARE_SOA_COLUMN(TrackTimeRes, trackTimeRes, float);                          
           "vertex.="<<vertex<<
           "hasCollision="<<hasCollision<<
           //track parameters
-          "trackPar="<<&trackPar<<
+          "trackPar.="<<&trackPar<<
+          "trackParIU.="<<&trackParIU<<
           // extended
           "dcaXY="<<dcaXY<<
           "dcaZ="<<dcaZ<<
